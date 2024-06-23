@@ -1,0 +1,51 @@
+// ENVIANDO EL FICHERO COMO ADJUNTO
+
+add_action('wpcf7_mail_sent', 'send_attachment_and_store_data');
+
+function send_attachment_and_store_data($contact_form) {
+    // ID del formulario que quieres modificar
+    $form_id = 6; // ID FORMULARIO
+    
+    // Verifica si el ID del formulario coincide
+    if ($contact_form->id() != $form_id) {
+        return;
+    }
+
+    // Obtén los datos enviados del formulario
+    $submission = WPCF7_Submission::get_instance();
+    if (!$submission) {
+        return;
+    }
+    
+    $posted_data = $submission->get_posted_data();
+    $selected_option = isset($posted_data['your-option']) ? $posted_data['your-option'] : '';
+
+    // Determina el archivo adjunto en función de la opción seleccionada
+    $attachments = [];
+
+    if ($selected_option == '1') {
+        $attachments[] = ABSPATH . 'documentos/documento1.pdf';
+    } elseif ($selected_option == '2') {
+        $attachments[] = ABSPATH . 'documentos/documento2.pdf';
+    } elseif ($selected_option == '3') {
+        $attachments[] = ABSPATH . 'documentos/documento3.pdf';
+    }
+
+    // Configura los encabezados y el cuerpo del correo electrónico
+    $headers = ['Content-Type: text/html; charset=UTF-8'];
+    $to = $posted_data['your-email'];
+    $subject = 'Confirmación de envío';
+    $body = 'Gracias por tu envío. Adjuntamos el documento correspondiente según tu selección.';
+
+    // Envía el correo electrónico
+    $result = wp_mail($to, $subject, $body, $headers, $attachments);
+
+    if ($result) {
+        // El correo se envió correctamente
+        error_log('El correo se envió correctamente.');
+    } else {
+        // Hubo un problema al enviar el correo
+        error_log('Hubo un problema al enviar el correo.');
+    }
+}
+

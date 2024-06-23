@@ -1,0 +1,59 @@
+// ENVIANDO ENLACE PARA DESCARGAR EL FICHERO
+
+add_action('wpcf7_mail_sent', 'send_link_and_store_data');
+
+function send_link_and_store_data($contact_form) {
+    // ID del formulario que quieres modificar
+    $form_id = 6; // Cambia 6 al ID de tu formulario de Contact Form 7
+
+    // Verifica si el ID del formulario coincide
+    if ($contact_form->id() != $form_id) {
+        return;
+    }
+
+    // Obtén los datos enviados del formulario
+    $submission = WPCF7_Submission::get_instance();
+    if (!$submission) {
+        return;
+    }
+    
+    $posted_data = $submission->get_posted_data();
+    $selected_option = isset($posted_data['your-option']) ? $posted_data['your-option'] : '';
+
+    // URL base del sitio web
+    $site_url = get_site_url(); // Obtén la URL base del sitio web
+
+    // Construye el enlace de descarga en función de la opción seleccionada
+    $download_link = '';
+
+    if ($selected_option == '1') {
+        $download_link = $site_url . '/documentos/documento1.pdf';
+    } elseif ($selected_option == '2') {
+        $download_link = $site_url . '/documentos/documento2.pdf';
+    } elseif ($selected_option == '3') {
+        $download_link = $site_url . '/documentos/documento3.pdf';
+    }
+
+    // Configura los encabezados y el cuerpo del correo electrónico
+    $headers = ['Content-Type: text/html; charset=UTF-8'];
+    $to = $posted_data['your-email'];
+    $subject = 'Confirmación de envío';
+
+    if ($download_link) {
+        $body = 'Gracias por tu envío. Puedes descargar el documento correspondiente a tu selección haciendo clic en el siguiente enlace: <a href="' . esc_url($download_link) . '">' . esc_url($download_link) . '</a>';
+    } else {
+        $body = 'Gracias por tu envío. No se seleccionó una opción válida.';
+    }
+
+    // Envía el correo electrónico
+    $result = wp_mail($to, $subject, $body, $headers);
+
+    if ($result) {
+        // El correo se envió correctamente
+        error_log('El correo se envió correctamente.');
+    } else {
+        // Hubo un problema al enviar el correo
+        error_log('Hubo un problema al enviar el correo.');
+    }
+}
+
